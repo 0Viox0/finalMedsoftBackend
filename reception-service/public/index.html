@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Reception UI</title>
+</head>
+<body>
+<h1>Создать пациента</h1>
+<form id="create">
+    <input name="firstName" placeholder="Имя" required />
+    <input name="lastName" placeholder="Фамилия" required />
+    <input name="birthDate" placeholder="DD.MM.YYYY" required />
+    <button type="submit">Создать</button>
+</form>
+
+<h2>Удалить пациента</h2>
+<form id="delete">
+    <input name="id" placeholder="ID пациента" required />
+    <button type="submit">Удалить</button>
+</form>
+
+<script>
+    async function post(url, body) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return res.json();
+    }
+
+    async function del(url, body) {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return res.json();
+    }
+
+    document.getElementById('create').addEventListener('submit', async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const body = {
+            firstName: fd.get('firstName'),
+            lastName: fd.get('lastName'),
+            birthDate: fd.get('birthDate')
+        };
+        const r = await post('/patients', body);
+        alert(JSON.stringify(r));
+    });
+
+    document.getElementById('delete').addEventListener('submit', async e => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const body = { id: fd.get('id') };
+        const r = await del('/patients', body);
+        alert(JSON.stringify(r));
+    });
+</script>
+</body>
+</html>

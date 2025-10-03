@@ -1,0 +1,28 @@
+{
+  "name": "hospital-service",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ts-node -r tsconfig-paths/register src/main.ts",
+    "start:prod": "node dist/main.js",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/platform-socket.io": "^11.1.6",
+    "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.6",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.7.1",
+    "sqlite3": "^5.1.6",
+    "typeorm": "^0.3.17",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.6"
+  }
+}

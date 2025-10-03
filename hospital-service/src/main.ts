@@ -1,0 +1,23 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as fs from 'fs';
+
+async function bootstrap() {
+    const httpsOptions = {
+        key: fs.readFileSync(join(__dirname, '..', '..', 'certs', 'server.key')),
+        cert: fs.readFileSync(join(__dirname, '..', '..', 'certs', 'server.crt')),
+    };
+
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, { httpsOptions });
+
+    app.useStaticAssets(join(__dirname, '..', 'public'));
+
+    const port = process.env.PORT || 3001;
+    await app.listen(port);
+
+    console.log(`Hospital service (HTTPS) listening on https://localhost:${port}`);
+}
+
+bootstrap();
