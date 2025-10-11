@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as fs from 'fs';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
     const httpsOptions = {
@@ -11,6 +12,9 @@ async function bootstrap() {
     };
 
     const app = await NestFactory.create<NestExpressApplication>(AppModule, { httpsOptions });
+
+    app.use(bodyParser.text({ type: ['text/*', 'application/hl7-v2', 'application/text'] }));
+    app.use(bodyParser.json());
 
     app.useStaticAssets(join(__dirname, '..', 'public'));
 

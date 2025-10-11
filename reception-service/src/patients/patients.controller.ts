@@ -6,14 +6,14 @@ export class PatientsController {
     @Post()
     async create(@Body() body: { firstName: string; lastName: string;
         birthDate: string }) {
-        const hl7 = this.hl7.buildHL7Json({ ...body, action: 'CREATE' });
-        const res = await this.hl7.encryptAndSend(hl7);
+        const hl7 = this.hl7.buildHL7v2({ ...body, action: 'CREATE' });
+        const res = await this.hl7.sendHL7(hl7);
         return res;
     }
     @Delete()
     async remove(@Body() body: { id: string }) {
-        const hl7 = this.hl7.buildHL7Json({ id: body.id, action: 'DELETE' });
-        const res = await this.hl7.encryptAndSend(hl7);
+        const hl7 = this.hl7.buildHL7v2({ id: body.id, action: 'DELETE' });
+        const res = await this.hl7.sendHL7(hl7);
         return res;
     }
 }

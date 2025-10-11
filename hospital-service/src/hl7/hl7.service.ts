@@ -1,45 +1,109 @@
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { PatientsService } from '../patients/patients.service';
-import path from "path";
+import path from 'path';
 import dotenv from 'dotenv';
+
 @Injectable()
 export class HL7Service {
-    private sharedKey: Buffer;
     constructor(private readonly patients: PatientsService) {
-
         const envPath = path.resolve(process.cwd(), '.env');
-        const result = dotenv.config({ path: envPath });
+        dotenv.config({ path: envPath });
+    }
 
-        const keyBase64 = process.env.SHARED_AES_KEY || '';
-        if (!keyBase64) throw new Error('SHARED_AES_KEY is required');
-        this.sharedKey = Buffer.from(keyBase64, 'base64');
+    parseHL7Text(message: string) {
+        if (!message || typeof message !== 'string') return {};
+
+        const lines = message.split(/\r?\n|\r/).map(l => l.trim()).filter(Boolean);
+        const result: Record<string, any> = {};
+
+        for (const line of lines) {
+            const fields = line.split('|');
+            const seg = fields[0];
+
+            if (!seg) continue;
+
+            const segObj = { raw: line, fields };
+
+            if (seg === 'MSH') {
+                result.MSH = {
+                    ...segObj,
+                    fieldSeparator: line[3] || '|', // обычно '|'
+                    encodingChars: fields[1] || '',
+                    sendingApp: fields[2] || '',
+                    sendingFacility: fields[3] || '',
+                    receivingApp: fields[4] || '',
+                    receivingFacility: fields[5] || '',
+                    timestamp: fields[6] || '',
+                    messageType: fields[8] || '',
+                    messageControlId: fields[9] || '',
+                    version: fields[11] || '',
+                };
+            } else if (seg === 'PID') {
+                const id = fields[3] || '';
+                const nameField = fields[5] || '';
+                let lastName = '', firstName = '';
+
+                if (nameField.includes('^')) {
+                    const [family, given] = nameField.split('^');
+                    lastName = family || '';
+                    firstName = given || '';
+                } else {
+                    lastName = nameField;
+                    firstName = fields[6] || '';
+                }
+
+                const action = (fields[fields.length - 1] || 'CREATE').toUpperCase();
+
+                result.PID = {
+                    ...segObj,
+                    id,
+                    lastName,
+                    firstName,
+                    birthDate: fields[7] || '',
+                    action,
+                };
+            } else {
+                if (!result[seg]) result[seg] = [];
+                result[seg].push(segObj);
+            }
+        }
+
+        return result;
     }
-    decryptPayload(payloadBase64: string, iv: Buffer | null) {
-        const buf = Buffer.from(payloadBase64, 'base64');
-        const tag = buf.slice(buf.length - 16);
-        const encrypted = buf.slice(0, buf.length - 16);
-        if (!iv) throw new Error('Missing IV');
-        const decipher = crypto.createDecipheriv('aes-256-gcm', this.sharedKey,
-            iv);
-        decipher.setAuthTag(tag);
-        const decrypted = Buffer.concat([decipher.update(encrypted),
-            decipher.final()]);
-        return JSON.parse(decrypted.toString('utf8'));
-    }
-    async processHL7(hl7obj: any) {
-        const action = hl7obj?.PID?.action;
+
+    async processHL7(hl7objOrText: any) {
+        let parsed = hl7objOrText;
+        if (typeof hl7objOrText === 'string') {
+            parsed = this.parseHL7Text(hl7objOrText);
+        }
+
+        const pid = parsed?.PID;
+        const action = pid?.action;
+
+        if (!pid) {
+            return { ok: false, reason: 'PID segment not found' };
+        }
+
         if (action === 'CREATE') {
-            console.log(hl7obj)
-            const p = await this.patients.createFromHL7(hl7obj.PID);
+            const toCreate = {
+                id: pid.id,
+                firstName: pid.firstName,
+                lastName: pid.lastName,
+                birthDate: pid.birthDate,
+                raw: pid.raw,
+                fields: pid.fields,
+            };
+            const p = await this.patients.createFromHL7(toCreate);
             await this.patients.notifyLast10();
             return { ok: true, id: p.id };
         } else if (action === 'DELETE') {
-            const id = hl7obj?.PID?.id;
+            const id = pid.id;
+            if (!id) return { ok: false, reason: 'no id for DELETE' };
             const ok = await this.patients.deleteById(id);
             await this.patients.notifyLast10();
             return { ok };
         }
+
         return { ok: false, reason: 'unknown action' };
     }
 }
