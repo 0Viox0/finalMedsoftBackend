@@ -27,7 +27,7 @@ export class HL7Service {
             if (seg === 'MSH') {
                 result.MSH = {
                     ...segObj,
-                    fieldSeparator: line[3] || '|', // обычно '|'
+                    fieldSeparator: line[3] || '|',
                     encodingChars: fields[1] || '',
                     sendingApp: fields[2] || '',
                     sendingFacility: fields[3] || '',
