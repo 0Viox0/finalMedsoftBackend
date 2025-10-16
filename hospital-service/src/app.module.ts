@@ -5,7 +5,6 @@ import { HL7Service } from "./hl7/hl7.service";
 import { PatientsService } from "./patients/patients.service";
 import { Patient } from "./patients/patient.entity";
 import { Last10Gateway } from "./ws/last10.gateway";
-import { PatientController } from "./patients/patient.controller";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 
 @Module({
@@ -19,7 +18,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
     }),
     TypeOrmModule.forFeature([Patient]),
   ],
-  controllers: [HL7Controller, PatientController],
+  controllers: [HL7Controller],
   providers: [HL7Service, PatientsService, Last10Gateway],
 })
 export class AppModule {}

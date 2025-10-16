@@ -17,6 +17,8 @@ export class PatientsController {
     const hl7 = this.hl7.buildHL7v2({ ...body, action: "CREATE" });
     const res = await this.hl7.sendHL7(hl7);
 
+    console.log("result in post: ", res);
+
     return res;
   }
 
@@ -25,13 +27,16 @@ export class PatientsController {
     const hl7 = this.hl7.buildHL7v2({ id: body.id, action: "DELETE" });
     const res = await this.hl7.sendHL7(hl7);
 
+    console.log("result in delete: ", res);
+
     return res;
   }
 
   @Get()
   async getPatients() {
-    const res = await axios.get(this.hospitalUrl);
+    const hl7 = this.hl7.buildHL7v2({ action: "GET" });
+    const res = await this.hl7.sendHL7(hl7);
 
-    return res.data;
+    return res;
   }
 }

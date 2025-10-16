@@ -109,6 +109,8 @@ export class HL7Service {
       const ok = await this.patients.deleteById(id);
 
       return { ok };
+    } else if (action === "GET") {
+      return this.patients.last10();
     }
 
     return { ok: false, reason: "unknown action" };
