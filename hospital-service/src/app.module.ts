@@ -6,9 +6,11 @@ import { PatientsService } from "./patients/patients.service";
 import { Patient } from "./patients/patient.entity";
 import { Last10Gateway } from "./ws/last10.gateway";
 import { PatientController } from "./patients/patient.controller";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot({
       type: "sqlite",
       database: process.env.DATABASE_FILE || "./data.sqlite",

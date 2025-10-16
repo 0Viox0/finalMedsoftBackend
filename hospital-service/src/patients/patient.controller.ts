@@ -7,7 +7,6 @@ export class PatientController {
 
   @Get()
   getPatients() {
-    console.log("here");
     return this.patients.last10();
   }
 }

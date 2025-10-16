@@ -30,7 +30,6 @@ export class PatientsController {
 
   @Get()
   async getPatients() {
-    console.log("here");
     const res = await axios.get(this.hospitalUrl);
 
     return res.data;
